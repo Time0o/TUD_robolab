@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+
+import sys
+import unittest
+
+sys.path.insert(0, '../src')
+from planet import Direction, Planet
+
+class PlanetTestCase(unittest.TestCase):
+    def setUp(self):
+        self.maxDiff = None
+
+        '''
+        test_planet1:
+
+                  +++--+++
+                   |    |
+        +++--+++  +++--2,4--+++--+++--+++--+++--7,4
+         |    |
+        +++--0,3--+++--+++
+              |         |
+             0,2-------2,2 > > >
+              |         |
+        +++--0,1  +++--+++
+         |    |    |
+        +++--0,0--1,0
+              ^
+              ^
+              ^
+
+        test_planet2:
+
+                       |--"2"--|
+                       |       |
+            0,6----"2"----2,6-"1"-3,6-------------"5"
+             |                     |               |
+             |                    "2"              |
+             |                     |               |
+             "2"---1,5----"3"-----3,5             5,5
+                    |              |               |
+                   "1"             |              "1"
+                    |              |               |
+              |----1,4----"4"     "2"-----4,4-"1"-5,4-"1"-6,4 >>>
+              |     |      |               |
+             "7"    |      |               |--"4"
+              |-----|      |                   |
+                           |      3,3-"1"-4,3  |
+                           |       |       |---|
+                           |       |
+                           |       |
+                          2,2-----"2"
+                           |
+                          "1"
+                           |
+                          2,1-----"3"-----4,1
+                           ^
+                           ^
+                           ^
+        '''
+        self.planet1 = Planet()
+
+        self.planet1.add_path((0, 0, Direction.WEST),
+                              (0, 1, Direction.WEST), 3)
+        self.planet1.add_path((0, 0, Direction.NORTH),
+                              (0, 1, Direction.SOUTH), 1)
+        self.planet1.add_path((0, 0, Direction.EAST),
+                              (1, 0, Direction.WEST), 1)
+        self.planet1.add_path((0, 1, Direction.NORTH),
+                              (0, 2, Direction.SOUTH), 1)
+        self.planet1.add_path((0, 2, Direction.NORTH),
+                              (0, 3, Direction.SOUTH), 1)
+        self.planet1.add_path((0, 2, Direction.EAST),
+                              (2, 2, Direction.WEST), 2)
+        self.planet1.add_path((0, 3, Direction.WEST),
+                              (0, 3, Direction.NORTH), 4)
+        self.planet1.add_path((0, 3, Direction.EAST),
+                              (2, 2, Direction.NORTH), 3)
+        self.planet1.add_path((1, 0, Direction.NORTH),
+                              (2, 2, Direction.SOUTH), 3)
+        self.planet1.add_path((2, 4, Direction.NORTH),
+                              (2, 4, Direction.WEST), 4)
+        self.planet1.add_path((2, 4, Direction.WEST),
+                              (2, 4, Direction.NORTH), 4)
+        self.planet1.add_path((2, 4, Direction.EAST),
+                              (7, 4, Direction.WEST), 5)
+
+        self.planet2 = Planet()
+
+        self.planet2.add_path((0, 6, Direction.EAST),
+                              (2, 6, Direction.WEST), 2)
+        self.planet2.add_path((0, 6, Direction.SOUTH),
+                              (1, 5, Direction.WEST), 2)
+        self.planet2.add_path((1, 5, Direction.EAST),
+                              (3, 5, Direction.WEST), 3)
+        self.planet2.add_path((1, 5, Direction.SOUTH),
+                              (1, 4, Direction.NORTH), 1)
+        self.planet2.add_path((1, 4, Direction.WEST),
+                              (1, 4, Direction.SOUTH), 7)
+        self.planet2.add_path((1, 4, Direction.EAST),
+                              (2, 2, Direction.NORTH), 4)
+        self.planet2.add_path((2, 6, Direction.EAST),
+                              (3, 6, Direction.WEST), 1)
+        self.planet2.add_path((2, 6, Direction.NORTH),
+                              (3, 6, Direction.NORTH), 2)
+        self.planet2.add_path((2, 2, Direction.SOUTH),
+                              (2, 1, Direction.NORTH), 1)
+        self.planet2.add_path((2, 2, Direction.EAST),
+                              (3, 3, Direction.SOUTH), 2)
+        self.planet2.add_path((2, 1, Direction.EAST),
+                              (4, 1, Direction.WEST), 3)
+        self.planet2.add_path((3, 6, Direction.EAST),
+                              (5, 5, Direction.NORTH), 5)
+        self.planet2.add_path((3, 6, Direction.SOUTH),
+                              (3, 5, Direction.NORTH), 2)
+        self.planet2.add_path((3, 5, Direction.SOUTH),
+                              (4, 4, Direction.WEST), 2)
+        self.planet2.add_path((3, 3, Direction.EAST),
+                              (4, 3, Direction.WEST), 1)
+        self.planet2.add_path((4, 4, Direction.EAST),
+                              (5, 4, Direction.WEST), 1)
+        self.planet2.add_path((4, 4, Direction.SOUTH),
+                              (4, 3, Direction.SOUTH), 4)
+        self.planet2.add_path((5, 5, Direction.SOUTH),
+                              (5, 4, Direction.NORTH), 1)
+        self.planet2.add_path((5, 4, Direction.EAST),
+                              (6, 4, Direction.WEST), 1)
+
+    def test_integrity(self):
+        expected = {
+            (0, 0) : {
+                Direction.NORTH : ((0, 1), Direction.SOUTH, 1),
+                Direction.EAST  : ((1, 0), Direction.WEST, 1),
+                Direction.WEST  : ((0, 1), Direction.WEST, 3)
+            },
+            (0, 1) : {
+                Direction.NORTH : ((0, 2), Direction.SOUTH, 1),
+                Direction.SOUTH : ((0, 0), Direction.NORTH, 1),
+                Direction.WEST  : ((0, 0), Direction.WEST, 3)
+            },
+            (0, 2) : {
+                Direction.NORTH : ((0, 3), Direction.SOUTH, 1),
+                Direction.EAST  : ((2, 2), Direction.WEST, 2),
+                Direction.SOUTH : ((0, 1), Direction.NORTH, 1)
+            },
+            (0, 3) : {
+                Direction.NORTH : ((0, 3), Direction.WEST, 4),
+                Direction.EAST  : ((2, 2), Direction.NORTH, 3),
+                Direction.SOUTH : ((0, 2), Direction.NORTH, 1),
+                Direction.WEST  : ((0, 3), Direction.NORTH, 4)
+            },
+            (1, 0) : {
+                Direction.NORTH : ((2, 2), Direction.SOUTH, 3),
+                Direction.WEST  : ((0, 0), Direction.EAST, 1)
+            },
+            (2, 2) : {
+                Direction.NORTH : ((0, 3), Direction.EAST, 3),
+                Direction.SOUTH : ((1, 0), Direction.NORTH, 3),
+                Direction.WEST  : ((0, 2), Direction.EAST, 2)
+            },
+            (2, 4) : {
+                Direction.NORTH : ((2, 4), Direction.WEST, 4),
+                Direction.WEST  : ((2, 4), Direction.NORTH, 4),
+                Direction.EAST  : ((7, 4), Direction.WEST, 5)
+            },
+            (7, 4) : {
+                Direction.WEST : ((2, 4), Direction.EAST, 5)
+            }
+        }
+
+        self.assertEqual(expected, self.planet1.get_paths())
+
+        expected2 = {
+	        (0, 6) : {
+                Direction.EAST  : ((2, 6), Direction.WEST, 2),
+                Direction.SOUTH : ((1, 5), Direction.WEST, 2)
+            },
+            (1, 5) : {
+                Direction.WEST  : ((0, 6), Direction.SOUTH, 2),
+                Direction.EAST  : ((3, 5), Direction.WEST, 3),
+                Direction.SOUTH : ((1, 4), Direction.NORTH, 1)
+            },
+            (1, 4) : {
+                Direction.NORTH : ((1, 5), Direction.SOUTH, 1),
+                Direction.WEST  : ((1, 4), Direction.SOUTH, 7),
+                Direction.EAST  : ((2, 2), Direction.NORTH, 4),
+                Direction.SOUTH : ((1, 4), Direction.WEST, 7)
+            },
+            (2, 6) : {
+                Direction.NORTH : ((3, 6), Direction.NORTH, 2),
+                Direction.WEST  : ((0, 6), Direction.EAST, 2),
+                Direction.EAST  : ((3, 6), Direction.WEST, 1)
+            },
+            (2, 2) : {
+                Direction.NORTH : ((1, 4), Direction.EAST, 4),
+                Direction.EAST  : ((3, 3), Direction.SOUTH, 2),
+                Direction.SOUTH : ((2, 1), Direction.NORTH, 1)
+            },
+            (2, 1) : {
+                Direction.NORTH : ((2, 2), Direction.SOUTH, 1),
+                Direction.EAST  : ((4, 1), Direction.WEST, 3)
+            },
+            (3, 6) : {
+                Direction.NORTH : ((2, 6), Direction.NORTH, 2),
+                Direction.WEST  : ((2, 6), Direction.EAST, 1),
+                Direction.EAST  : ((5, 5), Direction.NORTH, 5),
+                Direction.SOUTH : ((3, 5), Direction.NORTH, 2)
+            },
+            (3, 5) : {
+                Direction.NORTH : ((3, 6), Direction.SOUTH, 2),
+                Direction.WEST  : ((1, 5), Direction.EAST, 3),
+                Direction.SOUTH : ((4, 4), Direction.WEST, 2)
+            },
+            (3, 3) : {
+                Direction.EAST  : ((4, 3), Direction.WEST, 1),
+                Direction.SOUTH : ((2, 2), Direction.EAST, 2)
+            },
+            (4, 4) : {
+                Direction.WEST  : ((3, 5), Direction.SOUTH, 2),
+                Direction.EAST  : ((5, 4), Direction.WEST, 1),
+                Direction.SOUTH : ((4, 3), Direction.SOUTH, 4)
+            },
+            (4, 3) : {
+                Direction.WEST  : ((3, 3), Direction.EAST, 1),
+                Direction.SOUTH : ((4, 4), Direction.SOUTH, 4)
+            },
+            (4, 1) : {
+                Direction.WEST : ((2, 1), Direction.EAST, 3)
+            },
+            (5, 5) : {
+                Direction.NORTH : ((3, 6), Direction.EAST, 5),
+                Direction.SOUTH : ((5, 4), Direction.NORTH, 1)
+            },
+            (5, 4) : {
+                Direction.NORTH : ((5, 5), Direction.SOUTH, 1),
+                Direction.WEST  : ((4, 4), Direction.EAST, 1),
+                Direction.EAST  : ((6, 4), Direction.WEST, 1)
+            },
+            (6, 4) : {
+                Direction.WEST : ((5, 4), Direction.EAST, 1)
+            }
+        }
+
+        self.assertEqual(expected2, self.planet2.get_paths())
+
+    def test_empty_planet(self):
+        empty_planet = Planet()
+        self.assertFalse(empty_planet.get_paths())
+
+    def test_target_not_reachable(self):
+        self.assertIsNone(self.planet1.shortest_path((0, 0), (42, 42)))
+
+    def test_shortest_path(self):
+        shortest_path1 = self.planet1.shortest_path((0, 0), (0, 2))
+        expected1 = [(0, 0, Direction.NORTH), (0, 1, Direction.NORTH)]
+        [(0, None), (1, Direction.NORTH)]
+        self.assertEqual(expected1, shortest_path1)
+
+        shortest_path2 = self.planet1.shortest_path((0, 3), (1, 0))
+        expected2 = [
+            (0, 3, Direction.SOUTH), (0, 2, Direction.SOUTH),
+            (0, 1, Direction.SOUTH), (0, 0, Direction.EAST)
+        ]
+        self.assertEqual(expected2, shortest_path2)
+
+        shortest_path3 = self.planet2.shortest_path((0, 6), (4, 3))
+        expected3 = [
+            (0, 6, Direction.SOUTH), (1, 5, Direction.SOUTH),
+            (1, 4, Direction.EAST), (2, 2, Direction.EAST), (3, 3, Direction.EAST)
+        ]
+        self.assertEqual(expected3, shortest_path3)
+
+        shortest_path4 = self.planet2.shortest_path((1, 4), (5, 5))
+        expected4 = [
+            (1, 4, Direction.NORTH), (1, 5, Direction.EAST), (3, 5, Direction.SOUTH),
+            (4, 4, Direction.EAST), (5, 4, Direction.NORTH)
+        ]
+        self.assertEqual(expected4, shortest_path4)
+
+        shortest_path5 = self.planet2.shortest_path((2,6), (2,1))
+        expected5 = [
+            (2, 6, Direction.WEST), (0, 6, Direction.SOUTH),
+            (1, 5, Direction.SOUTH), (1, 4, Direction.EAST), (2, 2, Direction.SOUTH)
+        ]
+        self.assertEqual(expected5, shortest_path5)
+
+    def test_same_length(self):
+        shortest_path = self.planet1.shortest_path((0, 0), (2, 2))
+        shortest_path2 = self.planet2.shortest_path((0, 6), (3, 5))
+        expected1 = [
+            (0, 0, Direction.EAST),
+            (1, 0, Direction.NORTH)
+        ]
+        expected2 = [
+            (0, 0, Direction.NORTH),
+            (0, 1, Direction.NORTH),
+            (0, 2, Direction.EAST)
+        ]
+        expected3 = [
+            (0, 6, Direction.EAST),
+            (2, 6, Direction.EAST),
+            (3, 6, Direction.SOUTH)
+        ]
+        expected4 = [
+            (0, 6, Direction.SOUTH),
+            (1, 5, Direction.EAST)
+        ]
+        self.assertTrue(shortest_path == expected1 or shortest_path == expected2)
+        self.assertTrue(shortest_path2 == expected3 or shortest_path2 == expected4)
+
+    def test_shortest_path_with_loop(self):
+        shortest_path = self.planet1.shortest_path((2, 4), (7, 4))
+        shortest_path2 = self.planet2.shortest_path((1, 4), (2, 2))
+        expected = [(2, 4, Direction.EAST)]
+        expected2 = [(1, 4, Direction.EAST)]
+        self.assertEqual(expected, shortest_path)
+        self.assertEqual(expected2, shortest_path2)
+
+    def test_target_not_reachable_with_loop(self):
+        self.planet1.add_path((0, 0, Direction.NORTH), (0, 1, Direction.SOUTH), 1)
+        self.planet1.add_path((0, 1, Direction.WEST), (0, 0, Direction.WEST), 1)
+        self.assertIsNone(self.planet1.shortest_path((0, 0), (1, 2)))
+
+if __name__ == "__main__":
+    unittest.main()
